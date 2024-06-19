@@ -5,6 +5,8 @@ export GOEXPERIMENT=newinliner
 export GOGC=off
 export GOMEMLIMIT=4GiB
 
+cd $HOME
+
 git clone https://github.com/XTLS/Xray-core
 
 pushd Xray-core
