@@ -23,4 +23,4 @@ do
     GOOS=linux go build -o ../frps_linux_amd64_${goamd64} -trimpath -gcflags=all="$XGCFLAGS" -ldflags=all="$XLDFLAGS" ./cmd/frps
     GOOS=windows go build -o ../frpc_windows_amd64_${goamd64}.exe -trimpath -gcflags=all="$XGCFLAGS" -ldflags="$XLDFLAGS" ./cmd/frpc
 done
-pop
+popd
