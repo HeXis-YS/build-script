@@ -1,4 +1,5 @@
 #!/bin/bash
+export PATH="$HOME/go/bin:$PATH"
 export CGO_ENABLED=0
 export GOEXPERIMENT=newinliner
 export GOGC=off
