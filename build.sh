@@ -7,6 +7,7 @@ export GOMEMLIMIT=4GiB
 export GO_GCFLAGS="-B"
 export GO_LDFLAGS="-s -w"
 
+cd $HOME
 
 git clone https://github.com/HeXis-YS/go --depth=1
 pushd go/src
