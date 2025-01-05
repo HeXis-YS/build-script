@@ -1,2 +1,2 @@
 # build-script
-This fork is for uploading releases
+This branch is for uploading releases
