@@ -1,13 +1,20 @@
-#!/bin/bash
-export PATH="$HOME/go/bin:$PATH"
+#!/usr/bin/bash
 export CGO_ENABLED=0
-# export GOEXPERIMENT=newinliner
 export GOGC=off
 export GOMEMLIMIT=4GiB
 
-cd $HOME
+if [ ! -d go/bin ]; then
+    GO_LATEST=$(curl https://go.dev/dl/?mode=json | jq -r .[0].version)
+    wget -O go.tar.gz "https://go.dev/dl/${GO_LATEST}.linux-amd64.tar.gz"
+    tar -xf go.tar.gz
+fi
 
-git clone https://github.com/fatedier/frp -b master
+export PATH="$(pwd)/go/bin:$PATH"
+
+if [ ! -d frp/.git ]; then
+    rm -rf frp
+    git clone https://github.com/fatedier/frp -b master
+fi
 
 pushd frp
 tag="$(git describe --abbrev=0 --tags)"
