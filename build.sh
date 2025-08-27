@@ -5,10 +5,8 @@ export GOMEMLIMIT=4GiB
 
 if [ ! -d go/bin ]; then
     GO_LATEST=$(curl https://go.dev/dl/?mode=json | jq -r .[0].version)
-    wget -O go.tar.gz "https://go.dev/dl/${GO_LATEST}.linux-amd64.tar.gz"
-    tar -xf go.tar.gz
+    wget -qO- "https://go.dev/dl/${GO_LATEST}.linux-amd64.tar.gz" | tar -xzf-
 fi
-
 export PATH="$(pwd)/go/bin:$PATH"
 
 if [ ! -d frp/.git ]; then
