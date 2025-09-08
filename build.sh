@@ -2,6 +2,7 @@
 export CGO_ENABLED=0
 export GOGC=off
 export GOMEMLIMIT=4GiB
+export GOEXPERIMENT=greenteagc
 
 if [ ! -d go/bin ]; then
     GO_LATEST=$(curl https://go.dev/dl/?mode=json | jq -r .[0].version)
