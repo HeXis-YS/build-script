@@ -1,0 +1,52 @@
+name: Build & Release (All)
+
+on:
+  schedule:
+    - cron: "0 9 * * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.meta.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install deps
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y jq curl zip git
+
+      - name: Build all (single script)
+        env:
+          FORCE_REBUILD: ${{ github.event_name == 'workflow_dispatch' }}
+        run: |
+          bash build.sh
+
+      - name: Read tag from versions.json (optional)
+        id: meta
+        run: |
+          TAG=$(cat out/tag.txt 2>/dev/null || echo bundle-latest)
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Show outputs
+        run: |
+          ls -R out dist || true
+      - name: Create/Update Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v0
+          body_path: /tmp/version.json
+          files: |
+            /tmp/dist/**
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
