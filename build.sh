@@ -102,7 +102,8 @@ update_frp() {
 }
 
 update_xray_core() {
-  if [[ -z $(check_update XTLS/Xray-core xray_core) ]]; then
+  local LATEST_VERSION=$(check_update XTLS/Xray-core xray_core)
+  if [[ -z $LATEST_VERSION ]]; then
     return
   fi
   install_go
@@ -115,7 +116,7 @@ update_xray_core() {
       pack_format="tgz"
     fi
     for goamd64 in "v2" "v3"; do
-      GOOS=$goos GOARCH=amd64 GOAMD64=$goamd64 go build $GOFLAGS -gcflags=all="$GOGCFLAGS" -ldflags="$GOLDFLAGS" -o $OUT_DIR/xray_amd64_$goamd64$suffix ./main
+      GOOS=$goos GOARCH=amd64 GOAMD64=$goamd64 go build $GOFLAGS -gcflags=all="$GOGCFLAGS" -ldflags="-X github.com/xtls/xray-core/core.build=$LATEST_VERSION $GOLDFLAGS" -o $OUT_DIR/xray_amd64_$goamd64$suffix ./main
     done
     pack $pack_format xray_core_$goos
   done
@@ -128,7 +129,7 @@ update_rclone() {
   fi
   install_go
   pushd rclone
-  GOOS=linux GOARCH=amd64 GOAMD64=v2 go build $GOFLAGS -gcflags=all="$GOGCFLAGS" -ldflags="$GOLDFLAGS" -o $OUT_DIR/rclone_amd64_v2 .
+  GOOS=linux GOARCH=amd64 GOAMD64=v2 go build $GOFLAGS -gcflags=all="$GOGCFLAGS" -ldflags="-X github.com/rclone/rclone/fs.Version='$(cat VERSION) $GOLDFLAGS" -o $OUT_DIR/rclone_amd64_v2 .
   pack tgz rclone_linux
   popd
 }
