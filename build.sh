@@ -122,6 +122,17 @@ update_xray_core() {
   popd
 }
 
+update_rclone() {
+  if [[ -z $(check_update rclone/rclone rclone) ]]; then
+    return
+  fi
+  install_go
+  pushd rclone
+  GOOS=linux GOARCH=amd64 GOAMD64=v2 go build $GOFLAGS -gcflags=all="$GOGCFLAGS" -ldflags="$GOLDFLAGS" -o $OUT_DIR/rclone_amd64_v2 .
+  pack tgz rclone_linux
+  popd
+}
+
 sudo rm -rf "$ROOT_DIR"
 mkdir -p "$OUT_DIR" "$DIST_DIR" "$GOPATH" "$GOHOME"
 pushd "$ROOT_DIR"
