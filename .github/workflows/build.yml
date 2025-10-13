@@ -33,14 +33,6 @@ jobs:
           TAG=$(cat out/tag.txt 2>/dev/null || echo bundle-latest)
           echo "tag=$TAG" >> $GITHUB_OUTPUT
 
-  release:
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Show outputs
-        run: |
-          ls -R out dist || true
       - name: Create/Update Release
         uses: softprops/action-gh-release@v2
         with:
