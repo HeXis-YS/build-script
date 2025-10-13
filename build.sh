@@ -56,14 +56,14 @@ install_go() {
 check_update() {
   local repo=$1
   local name=$2
-  local UPDATE_AVAILABLE="false"
-  case "$name" in
-    frp | xray_core)
-      UPDATE_AVAILABLE=$GO_UPDATE_AVAILABLE
-      ;;
-  esac
+  local UPDATE_AVAILABLE=$3
   local LATEST_VERSION=$(get_latest_release_version $repo)
   if [[ $UPDATE_AVAILABLE == "false" ]]; then
+    case "$name" in
+      frp | xray_core | rclone)
+        UPDATE_AVAILABLE=$GO_UPDATE_AVAILABLE
+        ;;
+    esac
     local CURRENT_VERSION=$(jq -r ".$name.version" $DIST_DIR/version.json)
     if [[ $CURRENT_VERSION == $LATEST_VERSION ]]; then
       return
@@ -75,7 +75,7 @@ check_update() {
 }
 
 update_frp() {
-  if [[ -z $(check_update fatedier/frp frp) ]]; then
+  if [[ -z $(check_update fatedier/frp frp $FORCE_UPDATE_FRP) ]]; then
     return
   fi
   install_go
@@ -102,7 +102,7 @@ update_frp() {
 }
 
 update_xray_core() {
-  local LATEST_VERSION=$(check_update XTLS/Xray-core xray_core)
+  local LATEST_VERSION=$(check_update XTLS/Xray-core xray_core $FORCE_UPDATE_XRAY_CORE)
   if [[ -z $LATEST_VERSION ]]; then
     return
   fi
@@ -124,7 +124,7 @@ update_xray_core() {
 }
 
 update_rclone() {
-  if [[ -z $(check_update rclone/rclone rclone) ]]; then
+  if [[ -z $(check_update rclone/rclone rclone $FORCE_UPDATE_RCLONE) ]]; then
     return
   fi
   install_go
@@ -151,3 +151,4 @@ fi
 
 update_frp
 update_xray_core
+update_rclone

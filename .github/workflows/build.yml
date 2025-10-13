@@ -4,6 +4,16 @@ on:
   schedule:
     - cron: "0 9 * * *"
   workflow_dispatch: {}
+    inputs:
+      frp:
+        type: boolean
+        default: false
+      xray-core:
+        type: boolean
+        default: false
+      rclone:
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -18,7 +28,9 @@ jobs:
 
       - name: Build all (single script)
         env:
-          FORCE_REBUILD: ${{ github.event_name == 'workflow_dispatch' }}
+          FORCE_UPDATE_FRP: ${{ inputs.frp }}
+          FORCE_UPDATE_XRAY_CORE: ${{ inputs.xray-core }}
+          FORCE_UPDATE_RCLONE: ${{ inputs.rclone }}
         run: |
           bash build.sh
 
