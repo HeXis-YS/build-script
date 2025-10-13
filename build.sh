@@ -88,6 +88,8 @@ update_frp() {
       progs+=("frps")
       suffix=""
       pack_format="tgz"
+
+      GOOS=$goos GOARCH=arm64 GOARM64=v9.0,lse,crypto go build $GOFLAGS -gcflags=all="$GOGCFLAGS" -ldflags="$GOLDFLAGS" -o $OUT_DIR/frpc_arm64_v9.0 ./cmd/frpc
     fi
     for goamd64 in "v2" "v3"; do
       for prog in ${progs[@]}; do
