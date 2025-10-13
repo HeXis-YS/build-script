@@ -26,8 +26,8 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v0
-          body_path: /tmp/version.json
+          body_path: /tmp/build-script/version.json
           files: |
-            /tmp/dist/**
+            /tmp/build-script/dist/**
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
