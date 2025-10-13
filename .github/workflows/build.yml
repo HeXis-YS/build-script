@@ -3,7 +3,7 @@ name: Build & Release
 on:
   schedule:
     - cron: "0 9 * * *"
-  workflow_dispatch: {}
+  workflow_dispatch:
     inputs:
       frp:
         type: boolean
