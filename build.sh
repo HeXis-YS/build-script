@@ -20,13 +20,11 @@ get_latest_version() { get_latest_release $1 | jq -r ".tag_name"; }
 FORCE_REBUILD=${FORCE_REBUILD:-"false"}
 
 VERSION_JSON=$(get_latest_release "HeXis-YS/build-script" | jq -r ".body")
-echo "$VERSION_JSON"
 
-update_version() { VERSION_JSON=$(echo "$VERSION_JSON" | jq ".$1.version = "\""$2"\"); }
-
-increase_revision() {
+update_version() {
   local OLD_REVISION=$(echo "$VERSION_JSON" | jq ".$1.revision")
   VERSION_JSON=$(echo "$VERSION_JSON" | jq ".$1.revision = $(($OLD_REVISION+1))")
+  VERSION_JSON=$(echo "$VERSION_JSON" | jq ".$1.version = "\""$2"\");
 }
 
 go_flags() {
@@ -84,7 +82,6 @@ build_frp() {
     done
     popd
     update_version frp $LATEST_VERSION
-    increase_revision frp
   fi
 }
 
