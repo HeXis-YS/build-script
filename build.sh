@@ -19,12 +19,10 @@ get_latest_version() { get_latest_release $1 | jq -r ".tag_name"; }
 
 FORCE_REBUILD=${FORCE_REBUILD:-"false"}
 
-VERSION_JSON=$(get_latest_release "HeXis-YS/build-script" | jq -r ".body")
+get_latest_release "HeXis-YS/build-script" | jq -r ".body" > $ROOT_DIR/version.json
 
 update_version() {
-  local OLD_REVISION=$(echo "$VERSION_JSON" | jq ".$1.revision")
-  VERSION_JSON=$(echo "$VERSION_JSON" | jq ".$1.revision = $(($OLD_REVISION+1))")
-  VERSION_JSON=$(echo "$VERSION_JSON" | jq ".$1.version = "\""$2"\");
+  echo $(jq ".$1.revision |=. +1 | .$1.version = "\""$2"\" $ROOT_DIR/version.json) > $ROOT_DIR/version.json
 }
 
 go_flags() {
@@ -49,41 +47,48 @@ install_go() {
   GO_READY="true"
 }
 
-build_frp() {
-  local CURRENT_VERSION=$(echo "$VERSION_JSON" | jq -r ".frp.version")
-  local LATEST_VERSION=$(get_latest_version fatedier/frp)
+check_update() {
+  local LATEST_VERSION=$(get_latest_version $1)
+  local CURRENT_VERSION=$(jq -r ".$2.version" $ROOT_DIR/version.json)
   if [[ $CURRENT_VERSION != $LATEST_VERSION ]]; then
-    git clone --branch $LATEST_VERSION --depth 1 --single-branch --no-tags https://github.com/fatedier/frp.git frp
-    pushd frp
-    install_go
-    mkdir out
-    for goos in "linux" "windows"; do
-      progs=("frpc")
-      suffix=""
-      if [[ "$goos" == "linux" ]]; then
-        progs+=("frps")
-      else
-        suffix=".exe"
-      fi
-      for goamd64 in "v2" "v3"; do
-        for prog in ${progs[@]}; do
-          GOOS=$goos GOARCH=amd64 GOAMD64=$goamd64 go build $GOFLAGS -gcflags=all="$GOGCFLAGS" -ldflags="$GOLDFLAGS" -o out/${prog}_amd64_$goamd64$suffix ./cmd/$prog
-        done
-      done
-      pushd out
-      if [[ "$goos" == "linux" ]]; then
-        tar -cf $DIST_DIR/frp_linux.tar *
-        gzip -9 $DIST_DIR/frp_linux.tar
-      else
-        zip -9 $DIST_DIR/frp_windows.zip *
-      fi
-      rm -rf *
-      popd
-    done
-    popd
-    update_version frp $LATEST_VERSION
+    git clone --branch $LATEST_VERSION --depth 1 --single-branch --no-tags https://github.com/$1.git $2
+    update_version $2 $LATEST_VERSION
+    echo "$LATEST_VERSION"
   fi
 }
 
-build_frp
-echo "$VERSION_JSON" > $ROOT_DIR/version.json
+update_frp() {
+  local LATEST_VERSION=$(check_update fatedier/frp frp)
+  if [[ -z $LATEST_VERSION ]]; then
+    return
+  fi
+  pushd frp
+  install_go
+  mkdir out
+  for goos in "linux" "windows"; do
+    progs=("frpc")
+    suffix=""
+    if [[ "$goos" == "linux" ]]; then
+      progs+=("frps")
+    else
+      suffix=".exe"
+    fi
+    for goamd64 in "v2" "v3"; do
+      for prog in ${progs[@]}; do
+        GOOS=$goos GOARCH=amd64 GOAMD64=$goamd64 go build $GOFLAGS -gcflags=all="$GOGCFLAGS" -ldflags="$GOLDFLAGS" -o out/${prog}_amd64_$goamd64$suffix ./cmd/$prog
+      done
+    done
+    pushd out
+    if [[ "$goos" == "linux" ]]; then
+      tar -cf $DIST_DIR/frp_linux.tar *
+      gzip -9 $DIST_DIR/frp_linux.tar
+    else
+      zip -9 $DIST_DIR/frp_windows.zip *
+    fi
+    rm -rf *
+    popd
+  done
+  popd
+}
+
+update_frp
