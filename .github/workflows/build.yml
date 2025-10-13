@@ -14,6 +14,9 @@ on:
       rclone:
         type: boolean
         default: false
+      restic:
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -31,6 +34,7 @@ jobs:
           FORCE_UPDATE_FRP: ${{ inputs.frp }}
           FORCE_UPDATE_XRAY_CORE: ${{ inputs.xray-core }}
           FORCE_UPDATE_RCLONE: ${{ inputs.rclone }}
+          FORCE_UPDATE_RESTIC: ${{ inputs.restic }}
         run: |
           bash build.sh
 

@@ -60,7 +60,7 @@ check_update() {
   local LATEST_VERSION=$(get_latest_release_version $repo)
   if [[ $UPDATE_AVAILABLE == "false" ]]; then
     case "$name" in
-      frp | xray_core | rclone)
+      frp | xray_core | rclone | restic)
         UPDATE_AVAILABLE=$GO_UPDATE_AVAILABLE
         ;;
     esac
@@ -75,39 +75,41 @@ check_update() {
 }
 
 update_frp() {
-  if [[ -z $(check_update fatedier/frp frp $FORCE_UPDATE_FRP) ]]; then
+  local repo="fatedier/frp" name="frp" force_update=$FORCE_UPDATE_FRP
+  if [[ -z $(check_update $repo $name $force_update) ]]; then
     return
   fi
   install_go
   pushd frp
   for goos in "linux" "windows"; do
-    progs=("frpc")
+    variants=("frpc")
     suffix=".exe"
     pack_format="zip"
     if [[ "$goos" == "linux" ]]; then
-      progs+=("frps")
+      variants+=("frps")
       suffix=""
       pack_format="tgz"
 
       GOOS=$goos GOARCH=arm64 GOARM64=v9.0,lse,crypto go build $GOFLAGS -gcflags=all="$GOGCFLAGS" -ldflags="$GOLDFLAGS" -o $OUT_DIR/frpc_arm64_v9.0 ./cmd/frpc
     fi
     for goamd64 in "v2" "v3"; do
-      for prog in ${progs[@]}; do
-        GOOS=$goos GOARCH=amd64 GOAMD64=$goamd64 go build $GOFLAGS -gcflags=all="$GOGCFLAGS" -ldflags="$GOLDFLAGS" -o $OUT_DIR/${prog}_amd64_$goamd64$suffix ./cmd/$prog
+      for variant in ${variants[@]}; do
+        GOOS=$goos GOARCH=amd64 GOAMD64=$goamd64 go build $GOFLAGS -gcflags=all="$GOGCFLAGS" -ldflags="$GOLDFLAGS" -o $OUT_DIR/${variant}_amd64_$goamd64$suffix ./cmd/$variant
       done
     done
-    pack $pack_format frp_$goos
+    pack $pack_format $name_$goos
   done
   popd
 }
 
 update_xray_core() {
-  local LATEST_VERSION=$(check_update XTLS/Xray-core xray_core $FORCE_UPDATE_XRAY_CORE)
+  local repo="XTLS/Xray-core" name="xray_core" force_update=$FORCE_UPDATE_XRAY_CORE
+  local LATEST_VERSION=$(check_update $repo $name $force_update)
   if [[ -z $LATEST_VERSION ]]; then
     return
   fi
   install_go
-  pushd xray_core
+  pushd $name
   for goos in "linux" "windows"; do
     suffix=".exe"
     pack_format="zip"
@@ -118,19 +120,32 @@ update_xray_core() {
     for goamd64 in "v2" "v3"; do
       GOOS=$goos GOARCH=amd64 GOAMD64=$goamd64 go build $GOFLAGS -gcflags=all="$GOGCFLAGS" -ldflags="-X github.com/xtls/xray-core/core.build=$LATEST_VERSION $GOLDFLAGS" -o $OUT_DIR/xray_amd64_$goamd64$suffix ./main
     done
-    pack $pack_format xray_core_$goos
+    pack $pack_format ${name}_$goos
   done
   popd
 }
 
 update_rclone() {
-  if [[ -z $(check_update rclone/rclone rclone $FORCE_UPDATE_RCLONE) ]]; then
+  local repo="rclone/rclone" name="rclone" force_update=$FORCE_UPDATE_RCLONE
+  if [[ -z $(check_update $repo $name $force_update) ]]; then
     return
   fi
   install_go
-  pushd rclone
+  pushd $name
   GOOS=linux GOARCH=amd64 GOAMD64=v2 go build $GOFLAGS -gcflags=all="$GOGCFLAGS" -ldflags="-X github.com/rclone/rclone/fs.Version='$(cat VERSION) $GOLDFLAGS" -o $OUT_DIR/rclone_amd64_v2 .
-  pack tgz rclone_linux
+  pack tgz ${name}_linux
+  popd
+}
+
+update_restic() {
+  local repo="restic/restic" name="restic" force_update=$FORCE_UPDATE_RESTIC
+  if [[ -z $(check_update $repo $name $force_update) ]]; then
+    return
+  fi
+  install_go
+  pushd $name
+  GOOS=linux GOARCH=amd64 GOAMD64=v2 go build $GOFLAGS -tags disable_grpc_modules -gcflags=all="$GOGCFLAGS" -ldflags="$GOLDFLAGS" -o $OUT_DIR/restic_amd64_v2 ./cmd/restic
+  pack tgz ${name}_linux
   popd
 }
 
@@ -152,3 +167,4 @@ fi
 update_frp
 update_xray_core
 update_rclone
+update_restic
