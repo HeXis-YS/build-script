@@ -1,4 +1,4 @@
-name: Build & Release (All)
+name: Build & Release
 
 on:
   schedule:
@@ -16,22 +16,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install deps
-        run: |
-          sudo apt-get update -y
-          sudo apt-get install -y jq curl zip git
-
       - name: Build all (single script)
         env:
           FORCE_REBUILD: ${{ github.event_name == 'workflow_dispatch' }}
         run: |
           bash build.sh
-
-      - name: Read tag from versions.json (optional)
-        id: meta
-        run: |
-          TAG=$(cat out/tag.txt 2>/dev/null || echo bundle-latest)
-          echo "tag=$TAG" >> $GITHUB_OUTPUT
 
       - name: Create/Update Release
         uses: softprops/action-gh-release@v2
