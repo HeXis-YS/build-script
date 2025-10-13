@@ -26,7 +26,6 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v0
-          body_path: /tmp/build-script/version.json
           files: |
             /tmp/build-script/dist/**
         env:

@@ -26,10 +26,10 @@ pack() {
 
 curl_get() { curl -fsSL "$1"; }
 
-get_latest_release_api() { curl_get "https://api.github.com/repos/$1/releases/latest"; }
+get_latest_release_version() { curl_get "https://api.github.com/repos/$1/releases/latest" | jq -r ".tag_name"; }
 
 update_version() {
-  echo $(jq ".$1.revision |=. +1 | .$1.version = "\""$2"\" $ROOT_DIR/version.json) > $ROOT_DIR/version.json
+  echo $(jq ".$1.revision |=. +1 | .$1.version = "\""$2"\" $DIST_DIR/version.json) > $DIST_DIR/version.json
 }
 
 go_flags() {
@@ -62,9 +62,9 @@ check_update() {
       UPDATE_AVAILABLE=$GO_UPDATE_AVAILABLE
       ;;
   esac
-  local LATEST_VERSION=$(get_latest_release_api $repo | jq -r ".tag_name")
+  local LATEST_VERSION=$(get_latest_release_version $repo)
   if [[ $UPDATE_AVAILABLE == "false" ]]; then
-    local CURRENT_VERSION=$(jq -r ".$name.version" $ROOT_DIR/version.json)
+    local CURRENT_VERSION=$(jq -r ".$name.version" $DIST_DIR/version.json)
     if [[ $CURRENT_VERSION == $LATEST_VERSION ]]; then
       return
     fi
@@ -124,12 +124,12 @@ sudo rm -rf "$ROOT_DIR"
 mkdir -p "$OUT_DIR" "$DIST_DIR" "$GOPATH" "$GOHOME"
 pushd "$ROOT_DIR"
 
-get_latest_release_api "HeXis-YS/build-script" | jq -r ".body" > $ROOT_DIR/version.json
+curl_get "https://github.com/HeXis-YS/build-script/releases/latest/download/version.json" > $DIST_DIR/version.json
 
 GO_READY="false"
 GO_UPDATE_AVAILABLE="false"
 GO_LATEST_VERSION=$(curl_get "https://go.dev/dl/?mode=json" | jq -r ".[0].version")
-GO_CURRENT_VERSION=$(jq -r ".go.version" $ROOT_DIR/version.json)
+GO_CURRENT_VERSION=$(jq -r ".go.version" $DIST_DIR/version.json)
 if [[ $GO_CURRENT_VERSION != $GO_LATEST_VERSION ]]; then
   GO_UPDATE_AVAILABLE="true"
   update_version go $GO_LATEST_VERSION
