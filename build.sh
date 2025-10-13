@@ -9,15 +9,15 @@ GOPATH="$ROOT_DIR/.gopath"
 
 pack() {
   local format=$1
-  local filename=$DIST_DIR/$2.tar
+  local filename=$DIST_DIR/$2
   pushd $OUT_DIR
   case "$format" in
     tgz)
-      tar -cf $filename *
-      gzip -9 $filename
+      tar -cf $filename.tar *
+      gzip -9 $filename.tar
       ;;
     zip)
-      zip -9 $filename *
+      zip -9 $filename.zip *
       ;;
   esac
   rm -rf *
@@ -58,7 +58,7 @@ check_update() {
   local name=$2
   local UPDATE_AVAILABLE="false"
   case "$name" in
-    frp)
+    frp | xray_core)
       UPDATE_AVAILABLE=$GO_UPDATE_AVAILABLE
       ;;
   esac
@@ -82,22 +82,40 @@ update_frp() {
   pushd frp
   for goos in "linux" "windows"; do
     progs=("frpc")
-    suffix=""
+    suffix=".exe"
+    pack_format="zip"
     if [[ "$goos" == "linux" ]]; then
       progs+=("frps")
-    else
-      suffix=".exe"
+      suffix=""
+      pack_format="tgz"
     fi
     for goamd64 in "v2" "v3"; do
       for prog in ${progs[@]}; do
         GOOS=$goos GOARCH=amd64 GOAMD64=$goamd64 go build $GOFLAGS -gcflags=all="$GOGCFLAGS" -ldflags="$GOLDFLAGS" -o $OUT_DIR/${prog}_amd64_$goamd64$suffix ./cmd/$prog
       done
     done
+    pack $pack_format frp_$goos
+  done
+  popd
+}
+
+update_xray_core() {
+  if [[ -z $(check_update XTLS/Xray-core xray_core) ]]; then
+    return
+  fi
+  install_go
+  pushd xray_core
+  for goos in "linux" "windows"; do
+    suffix=".exe"
+    pack_format="zip"
     if [[ "$goos" == "linux" ]]; then
-      pack tgz frp_linux
-    else
-      pack zip frp_windows
+      suffix=""
+      pack_format="tgz"
     fi
+    for goamd64 in "v2" "v3"; do
+      GOOS=$goos GOARCH=amd64 GOAMD64=$goamd64 go build $GOFLAGS -gcflags=all="$GOGCFLAGS" -ldflags="$GOLDFLAGS" -o $OUT_DIR/xray_amd64_$goamd64$suffix ./main
+    done
+    pack $pack_format xray_core_$goos
   done
   popd
 }
@@ -110,7 +128,7 @@ get_latest_release_api "HeXis-YS/build-script" | jq -r ".body" > $ROOT_DIR/versi
 
 GO_READY="false"
 GO_UPDATE_AVAILABLE="false"
-GO_LATEST_VERSION=$(curl_get https://go.dev/dl/?mode=json | jq -r ".[0].version")
+GO_LATEST_VERSION=$(curl_get "https://go.dev/dl/?mode=json" | jq -r ".[0].version")
 GO_CURRENT_VERSION=$(jq -r ".go.version" $ROOT_DIR/version.json)
 if [[ $GO_CURRENT_VERSION != $GO_LATEST_VERSION ]]; then
   GO_UPDATE_AVAILABLE="true"
@@ -118,3 +136,4 @@ if [[ $GO_CURRENT_VERSION != $GO_LATEST_VERSION ]]; then
 fi
 
 update_frp
+update_xray_core
