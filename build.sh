@@ -56,7 +56,7 @@ install_go() {
 check_update() {
   local repo=$1
   local name=$2
-  local UPDATE_AVAILABLE=$3
+  local UPDATE_AVAILABLE=${3:=false}
   local LATEST_VERSION=$(get_latest_release_version $repo)
   if [[ $UPDATE_AVAILABLE == "false" ]]; then
     case "$name" in
