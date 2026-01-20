@@ -97,7 +97,7 @@ update_frp() {
         GOOS=$goos GOARCH=amd64 GOAMD64=$goamd64 go build $GOFLAGS -gcflags=all="$GOGCFLAGS" -ldflags="$GOLDFLAGS" -o $OUT_DIR/${variant}_amd64_$goamd64$suffix ./cmd/$variant
       done
     done
-    pack $pack_format $name_$goos
+    pack $pack_format ${name}_$goos
   done
   popd
 }
