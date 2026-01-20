@@ -56,7 +56,7 @@ install_go() {
 check_update() {
   local repo=$1
   local name=$2
-  local UPDATE_AVAILABLE=${3:=false}
+  local UPDATE_AVAILABLE=$3
   local LATEST_VERSION=$(get_latest_release_version $repo)
   if [[ $UPDATE_AVAILABLE == "false" ]]; then
     case "$name" in
@@ -75,7 +75,7 @@ check_update() {
 }
 
 update_frp() {
-  local repo="fatedier/frp" name="frp" force_update=$FORCE_UPDATE_FRP
+  local repo="fatedier/frp" name="frp" force_update=${FORCE_UPDATE_FRP:=false}
   if [[ -z $(check_update $repo $name $force_update) ]]; then
     return
   fi
@@ -103,7 +103,7 @@ update_frp() {
 }
 
 update_xray_core() {
-  local repo="XTLS/Xray-core" name="xray_core" force_update=$FORCE_UPDATE_XRAY_CORE
+  local repo="XTLS/Xray-core" name="xray_core" force_update=${FORCE_UPDATE_XRAY_CORE:=false}
   local LATEST_VERSION=$(check_update $repo $name $force_update)
   if [[ -z $LATEST_VERSION ]]; then
     return
@@ -126,7 +126,7 @@ update_xray_core() {
 }
 
 update_rclone() {
-  local repo="rclone/rclone" name="rclone" force_update=$FORCE_UPDATE_RCLONE
+  local repo="rclone/rclone" name="rclone" force_update=${FORCE_UPDATE_RCLONE:=false}
   if [[ -z $(check_update $repo $name $force_update) ]]; then
     return
   fi
@@ -138,7 +138,7 @@ update_rclone() {
 }
 
 update_restic() {
-  local repo="restic/restic" name="restic" force_update=$FORCE_UPDATE_RESTIC
+  local repo="restic/restic" name="restic" force_update=${FORCE_UPDATE_RESTIC:=false}
   if [[ -z $(check_update $repo $name $force_update) ]]; then
     return
   fi
