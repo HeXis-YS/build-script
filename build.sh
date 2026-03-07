@@ -20,7 +20,6 @@ pushd Xray-core
 GCFLAGS="-l=4 -B"
 LDFLAGS="-X github.com/xtls/xray-core/core.build=$(git rev-parse HEAD | cut -c 1-7) -s -w -buildid="
 
-echo "Building Xray-core $tag"
 for goamd64 in v2 v3
 do
     export GOAMD64=${goamd64}
