@@ -11,15 +11,14 @@ export PATH="$(pwd)/go/bin:$PATH"
 
 if [ ! -d Xray-core/.git ]; then
     rm -rf Xray-core
-    git clone https://github.com/XTLS/Xray-core
+    XRAY_TAG=$(curl -fsSL "https://api.github.com/repos/XTLS/Xray-core/releases/latest" | jq -r ".tag_name")
+    git clone -b $XRAY_TAG --depth 1 --single-branch https://github.com/XTLS/Xray-core
 fi
 
 pushd Xray-core
-tag="$(git describe --abbrev=0 --tags)"
-git checkout $tag
 
 GCFLAGS="-l=4 -B"
-LDFLAGS="-X github.com/xtls/xray-core/core.build=$(git describe --tags) -s -w -buildid="
+LDFLAGS="-X github.com/xtls/xray-core/core.build=$(git rev-parse HEAD | cut -c 1-7) -s -w -buildid="
 
 echo "Building Xray-core $tag"
 for goamd64 in v2 v3
